@@ -52,6 +52,12 @@ async def buy_token_v4(token_address, amount_eth, max_fee_per_gas):
     min_amount_out = 1  # à ajuster selon la tolérance utilisateur
     deadline = int(time.time()) + 60
 
+    # 4. Préparer inputs (un tableau de bytes)
+    inputs = [swap_params, settle_all_param, take_all_param]
+
+    # 5. Préparer commands (V4_SWAP)
+    commands = V4_SWAP_COMMAND
+
     # Log détaillé des paramètres
     logging.info(f"[UNIV4SWAP] Swap params: token_address={token_address}, amount_in={amount_in}, min_amount_out={min_amount_out}, poolKey={poolKey}, zero_for_one={zero_for_one}, commands={commands}, inputs={inputs}, deadline={deadline}")
 
@@ -76,12 +82,6 @@ async def buy_token_v4(token_address, amount_eth, max_fee_per_gas):
     # Encodage des paramètres SETTLE_ALL et TAKE_ALL
     settle_all_param = encode(["address", "uint128"], [NATIVE_ETH_ADDRESS, amount_in])
     take_all_param = encode(["address", "uint128"], [token_address, min_amount_out])
-
-    # 4. Préparer inputs (un tableau de bytes)
-    inputs = [swap_params, settle_all_param, take_all_param]
-
-    # 5. Préparer commands (V4_SWAP)
-    commands = V4_SWAP_COMMAND
 
     value = amount_in
     tx = contract.functions.execute(commands, inputs, deadline).build_transaction({
