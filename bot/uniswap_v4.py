@@ -95,6 +95,27 @@ async def buy_token_v4(token_address, amount_eth, max_fee_per_gas):
 
     # Simulation .call() pour obtenir le revert reason avant envoi
     try:
+        # Préparer swap_params, settle_all_param, take_all_param, inputs, commands pour la simulation
+        swap_params = encode(
+            [
+                "(address,address,uint24,int24,bytes)",
+                "bool",
+                "uint128",
+                "uint128",
+                "bytes"
+            ],
+            [
+                poolKey,
+                zero_for_one,  # zeroForOne selon l'ordre des tokens
+                amount_in,
+                min_amount_out,
+                b""
+            ]
+        )
+        settle_all_param = encode(["address", "uint128"], [NATIVE_ETH_ADDRESS, amount_in])
+        take_all_param = encode(["address", "uint128"], [token_address, min_amount_out])
+        inputs = [swap_params, settle_all_param, take_all_param]
+        commands = V4_SWAP_COMMAND
         contract.functions.execute(commands, inputs, deadline).call({
             'from': account.address,
             'value': amount_in,
