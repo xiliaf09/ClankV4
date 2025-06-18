@@ -4,7 +4,7 @@ import time
 from web3 import Web3
 from bot.base_web3 import get_web3, get_account
 import logging
-from eth_abi import encode_abi
+from eth_abi import encode
 
 # Adresse et ABI du Universal Router V4 sur Base
 UNIVERSAL_ROUTER_ADDRESS = os.getenv("UNIVERSAL_ROUTER_ADDRESS", "0x6fF5693b99212Da76ad316178A184AB56D299b43")
@@ -51,7 +51,7 @@ async def buy_token_v4(token_address, amount_eth, max_fee_per_gas):
     deadline = int(time.time()) + 60
 
     # Encodage du paramètre swap (poolKey, zeroForOne, amountIn, amountOutMinimum, hookData)
-    swap_params = encode_abi(
+    swap_params = encode(
         [
             # poolKey struct
             "tuple(address,address,uint24,int24,bytes)",
@@ -70,8 +70,8 @@ async def buy_token_v4(token_address, amount_eth, max_fee_per_gas):
     )
 
     # Encodage des paramètres SETTLE_ALL et TAKE_ALL
-    settle_all_param = encode_abi(["address", "uint128"], [NATIVE_ETH_ADDRESS, amount_in])
-    take_all_param = encode_abi(["address", "uint128"], [token_address, min_amount_out])
+    settle_all_param = encode(["address", "uint128"], [NATIVE_ETH_ADDRESS, amount_in])
+    take_all_param = encode(["address", "uint128"], [token_address, min_amount_out])
 
     # 4. Préparer inputs (un tableau de bytes)
     inputs = [swap_params, settle_all_param, take_all_param]
