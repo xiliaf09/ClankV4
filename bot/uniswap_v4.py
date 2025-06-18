@@ -37,23 +37,27 @@ async def buy_token_v4(token_address, amount_eth, max_fee_per_gas):
     # 2. Préparer le poolKey (simplifié, à adapter selon la pool réelle)
     # Pour ETH natif, currency0 = NATIVE_ETH_ADDRESS, currency1 = token_address
     # Les autres paramètres (fee, tickSpacing, hooks) doivent être déterminés selon la pool cible
-    poolKey = (
-        Web3.to_checksum_address(NATIVE_ETH_ADDRESS),
-        Web3.to_checksum_address(token_address),
-        3000,  # fee (exemple, à ajuster selon la pool)
-        60,    # tickSpacing (exemple, à ajuster selon la pool)
-        b""    # hooks (vide pour un swap simple)
-    )
+    eth_addr = Web3.to_checksum_address(NATIVE_ETH_ADDRESS)
+    token_addr = Web3.to_checksum_address(token_address)
+    if eth_addr.lower() < token_addr.lower():
+        currency0, currency1 = eth_addr, token_addr
+        zero_for_one = True
+    else:
+        currency0, currency1 = token_addr, eth_addr
+        zero_for_one = False
+    poolKey = (currency0, currency1, 3000, 60, b"")
 
     # 3. Préparer les paramètres du swap (ExactInputSingleParams)
     amount_in = w3.to_wei(float(amount_eth), 'ether')
     min_amount_out = 1  # à ajuster selon la tolérance utilisateur
     deadline = int(time.time()) + 60
 
+    # Log détaillé des paramètres
+    logging.info(f"[UNIV4SWAP] Swap params: token_address={token_address}, amount_in={amount_in}, min_amount_out={min_amount_out}, poolKey={poolKey}, zero_for_one={zero_for_one}, commands={commands}, inputs={inputs}, deadline={deadline}")
+
     # Encodage du paramètre swap (poolKey, zeroForOne, amountIn, amountOutMinimum, hookData)
     swap_params = encode(
         [
-            # poolKey struct
             "(address,address,uint24,int24,bytes)",
             "bool",
             "uint128",
@@ -62,7 +66,7 @@ async def buy_token_v4(token_address, amount_eth, max_fee_per_gas):
         ],
         [
             poolKey,
-            True,  # zeroForOne: ETH -> token
+            zero_for_one,  # zeroForOne selon l'ordre des tokens
             amount_in,
             min_amount_out,
             b""
@@ -89,9 +93,6 @@ async def buy_token_v4(token_address, amount_eth, max_fee_per_gas):
         'chainId': w3.eth.chain_id,
     })
 
-    # Log détaillé des paramètres
-    logging.info(f"[UNIV4SWAP] Swap params: token_address={token_address}, amount_in={amount_in}, min_amount_out={min_amount_out}, poolKey={poolKey}, commands={commands}, inputs={inputs}, deadline={deadline}")
-
     # Simulation .call() pour obtenir le revert reason avant envoi
     try:
         contract.functions.execute(commands, inputs, deadline).call({
@@ -100,6 +101,9 @@ async def buy_token_v4(token_address, amount_eth, max_fee_per_gas):
         })
         logging.info("[UNIV4SWAP] Simulation .call() OK: la transaction devrait passer.")
     except Exception as e:
+        if "0xff633a38" in str(e):
+            logging.error("[UNIV4SWAP] PoolNotFound: la pool n'existe pas ou mauvais paramètres (fee/tickSpacing/token order)")
+            return None, None, "Simulation revert: PoolNotFound (la pool n'existe pas ou mauvais paramètres)"
         logging.error(f"[UNIV4SWAP] Simulation .call() revert: {e}")
         return None, None, f"Simulation revert: {e}"
 
