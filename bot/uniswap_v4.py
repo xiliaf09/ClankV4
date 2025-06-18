@@ -89,7 +89,7 @@ async def buy_token_v4(token_address, amount_eth, max_fee_per_gas):
         'chainId': w3.eth.chain_id,
     })
     signed = w3.eth.account.sign_transaction(tx, account.key)
-    tx_hash = w3.eth.send_raw_transaction(signed.rawTransaction)
+    tx_hash = w3.eth.send_raw_transaction(signed.raw_transaction)
     basescan_url = BASESCAN_TX_URL + tx_hash.hex()
     logging.info(f"Swap ETH natif -> token envoyé via Universal Router : {tx_hash.hex()}")
     return tx_hash.hex(), basescan_url, "Swap ETH natif -> token en cours (Universal Router)" 
