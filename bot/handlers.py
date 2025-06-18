@@ -3,6 +3,14 @@ from telegram.ext import ContextTypes, CommandHandler
 from bot.uniswap_v4 import buy_token_v4
 import logging
 
+async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "🤖 Bot Uniswap V4 prêt !\n"
+        "Utilise la commande :\n"
+        "/buyv4 <token_address> <amount_eth> <max_fee_per_gas>\n"
+        "pour acheter un token via Uniswap V4 sur Base."
+    )
+
 async def buyv4_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         if len(context.args) != 3:
@@ -16,4 +24,5 @@ async def buyv4_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"Erreur lors du swap : {e}")
 
 def register_handlers(app):
+    app.add_handler(CommandHandler("start", start_command))
     app.add_handler(CommandHandler("buyv4", buyv4_command)) 
