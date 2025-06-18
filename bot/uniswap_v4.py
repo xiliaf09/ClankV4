@@ -54,7 +54,7 @@ async def buy_token_v4(token_address, amount_eth, max_fee_per_gas):
     swap_params = encode(
         [
             # poolKey struct
-            "tuple(address,address,uint24,int24,bytes)",
+            "(address,address,uint24,int24,bytes)",
             "bool",
             "uint128",
             "uint128",
