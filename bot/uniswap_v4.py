@@ -88,6 +88,22 @@ async def buy_token_v4(token_address, amount_eth, max_fee_per_gas):
         'nonce': w3.eth.get_transaction_count(account.address),
         'chainId': w3.eth.chain_id,
     })
+
+    # Log détaillé des paramètres
+    logging.info(f"[UNIV4SWAP] Swap params: token_address={token_address}, amount_in={amount_in}, min_amount_out={min_amount_out}, poolKey={poolKey}, commands={commands}, inputs={inputs}, deadline={deadline}")
+
+    # Simulation .call() pour obtenir le revert reason avant envoi
+    try:
+        contract.functions.execute(commands, inputs, deadline).call({
+            'from': account.address,
+            'value': value,
+        })
+        logging.info("[UNIV4SWAP] Simulation .call() OK: la transaction devrait passer.")
+    except Exception as e:
+        logging.error(f"[UNIV4SWAP] Simulation .call() revert: {e}")
+        return None, None, f"Simulation revert: {e}"
+
+    # Envoi réel de la transaction
     signed = w3.eth.account.sign_transaction(tx, account.key)
     tx_hash = w3.eth.send_raw_transaction(signed.raw_transaction)
     basescan_url = BASESCAN_TX_URL + tx_hash.hex()
