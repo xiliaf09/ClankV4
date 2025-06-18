@@ -97,7 +97,7 @@ async def buy_token_v4(token_address, amount_eth, max_fee_per_gas):
     try:
         contract.functions.execute(commands, inputs, deadline).call({
             'from': account.address,
-            'value': value,
+            'value': amount_in,
         })
         logging.info("[UNIV4SWAP] Simulation .call() OK: la transaction devrait passer.")
     except Exception as e:
@@ -107,7 +107,7 @@ async def buy_token_v4(token_address, amount_eth, max_fee_per_gas):
         logging.error(f"[UNIV4SWAP] Simulation .call() revert: {e}")
         return None, None, f"Simulation revert: {e}"
 
-    # Envoi réel de la transaction
+    # Si la simulation passe, on continue avec l'envoi réel
     signed = w3.eth.account.sign_transaction(tx, account.key)
     tx_hash = w3.eth.send_raw_transaction(signed.raw_transaction)
     basescan_url = BASESCAN_TX_URL + tx_hash.hex()
