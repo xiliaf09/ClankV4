@@ -93,7 +93,6 @@ async def buy_token_v4(token_address, amount_eth, max_fee_per_gas):
         'chainId': w3.eth.chain_id,
     })
 
-    # Simulation .call() pour obtenir le revert reason avant envoi
     try:
         # Préparer swap_params, settle_all_param, take_all_param, inputs, commands pour la simulation
         swap_params = encode(
@@ -116,21 +115,23 @@ async def buy_token_v4(token_address, amount_eth, max_fee_per_gas):
         take_all_param = encode(["address", "uint128"], [token_address, min_amount_out])
         inputs = [swap_params, settle_all_param, take_all_param]
         commands = V4_SWAP_COMMAND
+        # Log détaillé des paramètres
+        logging.info(f"[UNIV4SWAP] Swap params: token_address={token_address}, amount_in={amount_in}, min_amount_out={min_amount_out}, poolKey={poolKey}, zero_for_one={zero_for_one}, commands={commands}, inputs={inputs}, deadline={deadline}")
+        # Simulation .call() pour obtenir le revert reason avant envoi
         contract.functions.execute(commands, inputs, deadline).call({
             'from': account.address,
             'value': amount_in,
         })
         logging.info("[UNIV4SWAP] Simulation .call() OK: la transaction devrait passer.")
+        # Si la simulation passe, on continue avec l'envoi réel
+        signed = w3.eth.account.sign_transaction(tx, account.key)
+        tx_hash = w3.eth.send_raw_transaction(signed.raw_transaction)
+        basescan_url = BASESCAN_TX_URL + tx_hash.hex()
+        logging.info(f"Swap ETH natif -> token envoyé via Universal Router : {tx_hash.hex()}")
+        return tx_hash.hex(), basescan_url, "Swap ETH natif -> token en cours (Universal Router)"
     except Exception as e:
         if "0xff633a38" in str(e):
             logging.error("[UNIV4SWAP] PoolNotFound: la pool n'existe pas ou mauvais paramètres (fee/tickSpacing/token order)")
             return None, None, "Simulation revert: PoolNotFound (la pool n'existe pas ou mauvais paramètres)"
         logging.error(f"[UNIV4SWAP] Simulation .call() revert: {e}")
-        return None, None, f"Simulation revert: {e}"
-
-    # Si la simulation passe, on continue avec l'envoi réel
-    signed = w3.eth.account.sign_transaction(tx, account.key)
-    tx_hash = w3.eth.send_raw_transaction(signed.raw_transaction)
-    basescan_url = BASESCAN_TX_URL + tx_hash.hex()
-    logging.info(f"Swap ETH natif -> token envoyé via Universal Router : {tx_hash.hex()}")
-    return tx_hash.hex(), basescan_url, "Swap ETH natif -> token en cours (Universal Router)" 
+        return None, None, f"Simulation revert: {e}" 
