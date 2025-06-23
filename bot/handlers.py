@@ -1,7 +1,7 @@
 from telegram import Update
 from telegram.ext import ContextTypes, CommandHandler
 from bot.zero_ex_api import ZeroExAPI
-from bot.base_web3 import get_web3_instance
+from bot.base_web3 import get_web3
 import logging
 import os
 from web3 import Web3
@@ -52,7 +52,7 @@ async def swap_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
         
         # Initialize Web3 and 0x API
-        web3 = get_web3_instance()
+        web3 = get_web3()
         zero_ex = ZeroExAPI(web3)
         
         # Convert ETH amount to wei
