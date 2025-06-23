@@ -1,48 +1,64 @@
-# Uniswap V4 Swap Telegram Bot
+# 0x Swap Telegram Bot
 
-Ce bot Telegram permet d'acheter n'importe quel token compatible Uniswap V4 sur la blockchain Base via une simple commande Telegram.
+Ce bot Telegram permet d'acheter n'importe quel token sur la blockchain Base via l'API 0x.org avec une simple commande Telegram.
 
 ## Fonctionnalités principales
-- Achat de tokens via la commande `/buyv4 <token_address> <amount_eth> <max_fee_per_gas>`
-- Vérification de la liquidité et de l'existence de la pool Uniswap V4
-- Gestion de l'approbation du token d'entrée (ETH natif ou WETH)
+- Achat de tokens via la commande `/swap <token_address> <amount_eth> <max_fee_per_gas>`
+- Utilisation de l'API 0x.org pour les meilleurs prix et liquidité
+- Support de tous les tokens ERC-20 sur Base
 - Affichage du hash de la transaction et d'un lien vers Basescan
-- Exploitation des nouveautés Uniswap V4 : hooks, singleton, flash accounting, support ETH natif
+- Gestion automatique des gas fees et optimisations
 
 ## Stack technique
 - Python 3.10+
 - python-telegram-bot
 - web3.py
+- 0x API
 - Déploiement Railway
 
 ## Configuration
 1. Cloner le repo
-2. Copier `.env.example` en `.env` et remplir les variables nécessaires
+2. Créer un fichier `.env` avec les variables suivantes :
+   ```
+   TELEGRAM_BOT_TOKEN=your_telegram_bot_token_here
+   PRIVATE_KEY=your_private_key_here
+   ZERO_EX_API_KEY=your_0x_api_key_here
+   BASE_RPC_URL=https://mainnet.base.org
+   ```
 3. Installer les dépendances : `pip install -r requirements.txt`
 4. Lancer le bot : `python main.py`
 
 ## Déploiement Railway
-- Toutes les variables sensibles doivent être configurées dans Railway (voir `.env.example`).
+- Toutes les variables sensibles doivent être configurées dans Railway
+- Obtenir une clé API gratuite sur [0x.org](https://0x.org/docs/api)
 
 ## Structure du projet
 ```
-/univ4swap-bot/
+/0x-swap-bot/
 │
 ├── bot/
 │   ├── __init__.py
 │   ├── handlers.py
-│   ├── uniswap_v4.py
+│   ├── zero_ex_api.py
 │   ├── base_web3.py
 │   └── utils.py
 ├── requirements.txt
 ├── README.md
-├── .env.example
 └── main.py
 ```
+
+## Utilisation
+1. Démarrer le bot avec `/start`
+2. Utiliser la commande `/swap <token_address> <amount_eth> <max_fee_per_gas>`
+   - `token_address` : Adresse du token à acheter
+   - `amount_eth` : Montant d'ETH à vendre
+   - `max_fee_per_gas` : Prix maximum du gas en wei
 
 ## Sécurité
 Aucune donnée sensible ne doit être hardcodée dans le code source. Utilisez les variables d'environnement.
 
-## À venir
-- Documentation détaillée des commandes
-- Support d'autres fonctionnalités Uniswap V4 
+## Avantages de 0x API
+- Meilleurs prix grâce à l'agrégation de plusieurs DEX
+- Liquidité optimisée
+- Support de tous les tokens ERC-20
+- API simple et fiable 

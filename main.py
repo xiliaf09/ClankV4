@@ -15,5 +15,5 @@ app = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
 register_handlers(app)
 
 if __name__ == "__main__":
-    print("Bot Telegram Uniswap V4 en cours de démarrage...")
+    print("Bot Telegram 0x Swap en cours de démarrage...")
     app.run_polling() 
