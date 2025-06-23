@@ -6,12 +6,15 @@ import logging
 import os
 from web3 import Web3
 
+WETH_BASE = "0x4200000000000000000000000000000000000006"  # WETH officiel sur Base
+
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "🤖 Bot 0x Swap prêt !\n"
         "Utilise la commande :\n"
         "/swap <token_address> <amount_eth> <max_fee_per_gas>\n"
         "pour acheter un token via 0x API sur Base."
+        "\n\n⚠️ Tu dois avoir du WETH sur Base pour swapper !"
     )
 
 async def swap_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -58,12 +61,12 @@ async def swap_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Convert ETH amount to wei
         sell_amount_wei = Web3.to_wei(amount_eth, 'ether')
         
-        # Execute swap
+        # Execute swap (toujours WETH comme sell_token sur Base)
         await update.message.reply_text("🔄 Exécution du swap en cours...")
         
         tx_hash = zero_ex.execute_swap(
             private_key=private_key,
-            sell_token="ETH",  # Selling ETH
+            sell_token=WETH_BASE,  # Utilise WETH de Base
             buy_token=token_address,  # Buying the specified token
             sell_amount=str(sell_amount_wei)
         )
@@ -75,7 +78,7 @@ async def swap_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"✅ Swap exécuté avec succès !\n"
             f"📊 Hash: `{tx_hash}`\n"
             f"🔗 [Voir sur Basescan]({basescan_url})\n"
-            f"💰 Montant: {amount_eth} ETH"
+            f"💰 Montant: {amount_eth} WETH"
         )
         
     except Exception as e:
