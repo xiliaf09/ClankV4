@@ -13,6 +13,7 @@ class ZeroExAPI:
     def __init__(self, web3: Web3):
         self.web3 = web3
         self.api_key = os.getenv('ZERO_EX_API_KEY')
+        print(f"ZERO_EX_API_KEY lue: {self.api_key}")  # DEBUG Railway
         self.base_url = "https://api.0x.org"
         self.chain_id = 8453  # Base chain ID
         
